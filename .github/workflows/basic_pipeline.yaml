@@ -1,0 +1,45 @@
+name: Basic pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test-and-build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+      # Static analysis and unittests
+    - uses: actions/checkout@master
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install PDM
+      run: pip install --upgrade pdm
+    - name: Install project
+      run: pdm install
+    - name: Lint with pylint
+      run: pdm lint
+    - name: Run unittests
+      run: pdm utest
+    - name: Run integration tests (sqlite)
+      run: pdm itest -k RobotFixtureArchivingSqliteTests
+
+    - name: Test scripts
+      run: |
+        pdm run testarchiver --version
+        pdm run testarchive_schematool --version
+
+    - name: Build distribution
+      run: pdm build
+
+    # Test parsing different test fixtures
+    - name: Run and parse robot fixtures
+      run: pdm robot_fixture_populate
+
+    - name: Run and parse pytest fixtures
+      run: pdm pytest_fixture_populate

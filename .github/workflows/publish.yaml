@@ -1,0 +1,37 @@
+name: Publish Testarchiver to Pypi
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+jobs:
+    build-and-publish:
+      name:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@master
+          with:
+            fetch-depth: 0
+        - name: Set up Python 3.12
+          uses: actions/setup-python@v2
+          with:
+            python-version: 3.12
+        - name: Install PDM
+          run: pip install --upgrade pdm
+        - name: Install project
+          run: pdm install
+
+        - name: Test scripts
+          run: |
+            pdm run testarchiver --version
+            pdm run testarchive_schematool --version
+            git status
+
+        - name: Build package
+          run: pdm build
+
+        - name: Publish package
+          run: pdm publish --no-build
+          env:
+            PDM_PUBLISH_USERNAME: __token__
+            PDM_PUBLISH_PASSWORD: ${{ secrets.pypi_api_token }}

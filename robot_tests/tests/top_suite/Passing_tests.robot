@@ -1,6 +1,6 @@
 *** Settings ***
-Resource    common_keywords.robot
-Force tags  passing
+Resource    ../../resources/common_keywords.robot
+Test Tags  passing
 
 *** Test cases ***
 Just log something
@@ -13,5 +13,6 @@ Use library
 Set things up, do something and then tear down
     [Setup]     Do nothing twice
     [Teardown]  Do nothing twice
+    Log  Doing nothing
     Do nothing twice
     Do nothing twice
